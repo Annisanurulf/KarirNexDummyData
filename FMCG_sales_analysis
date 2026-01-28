@@ -1,0 +1,74 @@
+-- SQL Analysis Practice
+-- Dataset: FMCG Dummy Data
+-- Source: KarirNex
+-- Purpose: Learning SQL for data analysis
+
+--Membuat Tabel FMCG
+Create table FMCG_new
+(sales_date date,
+order_id text,
+product_name text,
+category text,
+price int,
+quantity int,
+total int,
+discount int,
+shipping_fee int,
+total_sales text,
+customer_name text,
+customer_address text,
+channel text,
+rating int,
+status text);
+Insert into FMCG_new (sales_date, order_id,product_name,category,price,quantity,total,discount,shipping_fee,total_sales,customer_name,customer_address,channel, rating,status) Select sales_date, order_id,product_name,category,price,quantity,total,discount,shipping_fee,total_sales,customer_name,customer_address,channel,rating,status From FMCG;
+Drop Table FMCG;
+
+--Menampilkan 10 baris order_id, product_name dan price dengan harga termahal
+berada paling atas
+select * from FMCG_new;
+Select order_id,product_name,price from FMCG_new
+Order by price desc
+Limit 10;
+
+--Menampilkan rata-rata rating berdasarkan customer-name, dengan customer yang memberi rating kecilberada di urutan teratas
+select customer_name, AVG(rating) as avg_rating from FMCG_new
+group by customer_name
+order by avg_rating asc;
+
+
+--Bulan apa yang memiliki jumlah total sales yang berhasil ?
+select strftime('%Y-%m', sales_date) as month, sum(total_sales) as total_sales from FMCG_new
+where status = 'Success'
+Group by month
+order by total_sales desc;
+
+
+--Chanel mana yang memiliki jumlah discount yang paling sedikit dan transaksi yang berhasil ?
+
+select channel, sum(discount) as total_discount, count(*) as total_transaction from FMCG_new
+where status = 'Success'
+group by channel
+order by total_discount asc  Limit 1;
+
+--Jika kalian ingin fokus mengembangkan produk minyak goreng, waktu mana yang paling laku secara total sales (tentu dengan transaksi yang berhasil saja apakah double date atau pay day sale ? 
+
+Select sales_date, product_name, sum(total_sales) from FMCG_new where status = 'Success' and product_name = 'Minyak Goreng' group by sales_date order by total_sales;
+SELECT COUNT(*) FROM FMCG_new WHERE product_name = 'minyak goreng';
+
+select sale_type, product_name, sum(total_sales) as total_sales 
+from (select sales_date, product_name, sum(total_sales) as total_sales, 
+case when strftime('%d', sales_date) in ('01','02','11','22') Then 'Double Date' 
+when strftime('%d', sales_date) in ('25') Then 'Pay Day' else 'Normal Day' End as sale_type 
+From FMCG_new where product_name ='Minyak Goreng' and status = 'Success' 
+Group by sales_date) 
+group by sale_type 
+Order by total_sales desc;
+
+select sale_type, product_name, sum(total_sales)/count(distinct sales_date) as total_sales 
+from (select sales_date, product_name, sum(total_sales)/count(distinct sales_date) as total_sales, 
+case when strftime('%d', sales_date) in ('01','02','11','22') Then 'Double Date' 
+when strftime('%d', sales_date) in ('25') Then 'Pay Day' else 'Normal Day' End as sale_type 
+From FMCG_new where product_name ='Minyak Goreng' and status = 'Success' 
+Group by sales_date) 
+group by sale_type 
+Order by total_sales desc;
